@@ -917,9 +917,11 @@ public class BluetoothPbapVcardManager {
             });
 
             if (startPoint == endPoint) {
+                int currentIndex = 0;
                 while (contactCursor.moveToNext()) {
                     long currentContactId = contactCursor.getLong(contactIdColumn);
-                    if (currentContactId == startPoint) {
+                    currentIndex++;
+                    if (currentIndex == startPoint) {
                         contactIdsCursor.addRow(new Long[]{currentContactId});
                         if (V) Log.v(TAG, "contactIdsCursor.addRow: " + currentContactId);
                         break;
@@ -1323,11 +1325,18 @@ public class BluetoothPbapVcardManager {
         String attr [] = vCard.split(System.getProperty("line.separator"));
         String Vcard = "";
             for (int i=0; i < attr.length; i++) {
-                if(attr[i].startsWith("TEL")) {
-                    attr[i] = attr[i].replace("(", "");
-                    attr[i] = attr[i].replace(")", "");
-                    attr[i] = attr[i].replace("-", "");
-                    attr[i] = attr[i].replace(" ", "");
+                if (attr[i].startsWith("TEL")) {
+                    // To remove '-', '(', ')' or ' ' from TEL number
+                    if (V) Log.v(TAG, "vCard line: " + attr[i]);
+                    String vTag = attr[i].substring(0, attr[i].lastIndexOf(":") + 1);
+                    String vTel = attr[i].substring(attr[i].lastIndexOf(":") + 1, attr[i].length())
+                                          .replace("-", "")
+                                          .replace("(", "")
+                                          .replace(")", "")
+                                          .replace(" ", "");
+                    if (V) Log.v(TAG, "vCard Tel Tag:" + vTag + ", Number:" + vTel);
+                    if (vTag.length() + vTel.length() < attr[i].length())
+                        attr[i] = new StringBuilder().append(vTag).append(vTel).toString();
                 }
             }
 
